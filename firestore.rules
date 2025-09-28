@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== Helpers =====
+    function isSignedIn() { return request.auth != null; }
+
+    // Se usa /users/{uid}.roleLevel como fonte da hierarquia:
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleLevel;
+      // Se você migrar para custom claims, troque por:
+      // return request.auth.token.roleLevel;
+    }
+
+    function roleIn(arr) { return isSignedIn() && (userRole() in arr); }
+
+    // =========================================================================
+    // PÚBLICO (ex.: Dashboard que lê estatísticas agregadas)
+    // =========================================================================
+    match /public_stats/{doc} {
+      allow read: if true;    // qualquer um pode LER
+      allow write: if false;  // ninguém escreve pelo cliente
+    }
+
+    // =========================================================================
+    // USERS (Página /admin)
+    //
+    // Regras pedidas:
+    // - Acesso /admin: 1..6 (todos logados) — regra de leitura cobre.
+    // - Ver todos os usuários (listar): 1..5 (role 6 vê apenas o próprio doc).
+    // - Criar usuário: 1..5, porém sempre roleLevel == 6 (soldado).
+    // - Editar usuário: 1 pode editar todos; 2 NÃO edita 1 e 2; 3/4/5/6 não editam.
+    // - Excluir usuário: 1 pode excluir todos; 2 NÃO exclui 1 e 2; 3/4/5/6 não excluem.
+    // - Troca de senha para 3/4/5/6 é via Auth (email reset), não via Firestore.
+    // =========================================================================
+    match /users/{uid} {
+
+      // Leitura:
+      // - list/get por 1..5 (veem todos)
+      // - role 6 só pode ver o próprio doc
+      allow list, get: if roleIn([1,2,3,4,5]) || (isSignedIn() && request.auth.uid == uid);
+
+      // Criação:
+      // - 1..5 podem criar, mas SEMPRE com roleLevel == 6
+      //   (1 e 2 poderão depois editar a hierarquia em "editar")
+      allow create: if roleIn([1,2,3,4,5])
+                    && request.resource.data.roleLevel == 6;
+
+      // Atualização:
+      // - 1 pode editar qualquer usuário
+      // - 2 pode editar apenas usuários cuja role ATUAL não seja 1 nem 2
+      // - 3/4/5/6 NÃO podem atualizar documentos
+      allow update: if isSignedIn() && (
+        userRole() == 1 ||
+        (userRole() == 2 && !(resource.data.roleLevel in [1,2]))
+      );
+
+      // Exclusão:
+      // - 1 pode excluir qualquer usuário
+      // - 2 pode excluir apenas usuários cuja role ATUAL não seja 1 nem 2
+      // - 3/4/5/6 NÃO podem excluir
+      allow delete: if isSignedIn() && (
+        userRole() == 1 ||
+        (userRole() == 2 && !(resource.data.roleLevel in [1,2]))
+      );
+    }
+
+    // =========================================================================
+    // ESTOQUE / BAÚS (como definido anteriormente)
+    // =========================================================================
+    match /baus/{bauId} {
+      // Ver baús: 1..5 (Soldado 6 não entra)
+      allow read: if roleIn([1,2,3,4,5]);
+
+      // Criar/atualizar/deletar baú (apagar/excluir todos): 1,2
+      allow create, update, delete: if roleIn([1,2]);
+
+      // Itens dentro do baú
+      match /itens/{itemId} {
+        // Ver itens: 1..5
+        allow read: if roleIn([1,2,3,4,5]);
+
+        // Registrar fabricação / Transferência (criar/atualizar item): 1..5
+        allow create, update: if roleIn([1,2,3,4,5]);
+
+        // Excluir item (“excluir do filtro”): 1,2
+        allow delete: if roleIn([1,2]);
+      }
+    }
+
+    // Logs do estoque (imutáveis)
+    match /estoque_logs/{logId} {
+      allow read: if roleIn([1,2,3,4,5]);
+      allow create: if roleIn([1,2,3,4,5]);
+      allow update, delete: if false;
+    }
+
+    // =========================================================================
+    // AÇÕES
+    // - “Ações” (listar/ler): 1..6
+    // - “Registro Ações” (criar/editar): 1..5
+    // - Excluir: 1..2 (se não usar, troque por false)
+    // =========================================================================
+    match /actions/{docId} {
+      allow read: if roleIn([1,2,3,4,5,6]);
+      allow create, update: if roleIn([1,2,3,4,5]);
+      allow delete: if roleIn([1,2]);
+    }
+
+    // =========================================================================
+    // REGISTRO FARM
+    // - leitura+escrita: 1..5
+    // - excluir: 1..2 (opcional)
+    // =========================================================================
+    match /farms/{farmId} {
+      allow read, create, update: if roleIn([1,2,3,4,5]);
+      allow delete: if roleIn([1,2]);
+    }
+
+    // =========================================================================
+    // REGISTRO VENDAS
+    // - leitura+escrita: 1..5
+    // - excluir: 1..2 (opcional)
+    // =========================================================================
+    match /sales/{saleId} {
+      allow read, create, update: if roleIn([1,2,3,4,5]);
+      allow delete: if roleIn([1,2]);
+    }
+  }
+}

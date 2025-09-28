@@ -1,0 +1,28 @@
+{
+  "Relatorio de Erro": {
+    "prefix": "bugreport",
+    "body": [
+      "## 🐞 RELATÓRIO DE ERRO",
+      "",
+      "**📌 Nome da página/arquivo:**  ",
+      "`(ex: adminpage.tsx ou calculadora-farm/page.tsx)`",
+      "",
+      "**⚠️ Descrição do erro:**  ",
+      "`(explique o que está acontecendo, ex: não salva os dados, tela em branco, etc.)`",
+      "",
+      "**📝 Mensagem de erro completa:**  ",
+      "```",
+      "cole aqui a mensagem exata do console ou VSCode",
+      "```",
+      "",
+      "**🎯 O que você esperava que acontecesse:**  ",
+      "`(ex: ao clicar em salvar, deveria adicionar o usuário na lista)`",
+      "",
+      "**📂 Trecho de código relacionado (ou arquivo inteiro):**  ",
+      "```tsx",
+      "// cole aqui o trecho do código que está com problema",
+      "```"
+    ],
+    "description": "Modelo pronto para relatar erros do site"
+  }
+}

@@ -1,63 +1,84 @@
 "use client";
 
 import { useState } from "react";
-import CountUp from "react-countup";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-// 🔹 agora com s minúsculo
+import Image from "next/image";
+import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 import Sidebar from "@/components/ui/sidebar";
 
 export default function Dashboard() {
   const [activePage, setActivePage] = useState("Inicial");
 
-  const dataAtividades = [
-    { dia: "Seg", acoes: 12 },
-    { dia: "Ter", acoes: 19 },
-    { dia: "Qua", acoes: 8 },
-    { dia: "Qui", acoes: 15 },
-    { dia: "Sex", acoes: 10 },
-  ];
-
   return (
-    <div className="flex min-h-screen font-sans bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+    <div className="flex min-h-screen font-sans bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
-      <div className="flex-1 p-10 flex flex-col gap-6 relative">
-        <span className="absolute top-4 right-4 text-gray-400 dark:text-gray-300 text-sm font-semibold">
-          V1.7
+      <main className="flex-1 p-4 md:p-6 relative">
+        <span className="absolute top-3 right-3 text-gray-400 dark:text-gray-300 text-xs font-semibold">
+          V1.6
         </span>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl transition-colors duration-300 text-center">
-          <h1 className="text-4xl font-bold mb-2">Bem-vindo, Kitobiten!</h1>
-          <p className="text-gray-500 dark:text-gray-300 text-lg">Painel de controle da sua farm</p>
-        </div>
+        <section className="mx-auto max-w-3xl bg-white dark:bg-gray-800 rounded-2xl p-5 md:p-6 shadow-xl border border-gray-200/60 dark:border-gray-700/40">
+          <div className="flex flex-col items-center text-center gap-4">
+            {/* LOGO — mais compacta */}
+            <div className="relative w-28 h-28 md:w-36 md:h-36">
+              <Image
+                src="/logo-fac.png"
+                alt="Logo TROPA DO CARECA"
+                fill
+                priority
+                className="object-contain drop-shadow-[0_0_18px_rgba(132,255,0,0.28)]"
+              />
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md hover:scale-105 transform">
-            <h2 className="text-xl font-semibold mb-2">Usuários Ativos</h2>
-            <p className="text-3xl font-bold text-blue-500">
-              <CountUp end={128} duration={2} separator="," />
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md hover:scale-105 transform">
-            <h2 className="text-xl font-semibold mb-2">Ações Registradas</h2>
-            <p className="text-3xl font-bold text-purple-500">
-              <CountUp end={74} duration={2} separator="," />
-            </p>
-          </div>
-        </div>
+            {/* Título menor */}
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+              Painel TROPA DO CARECA
+            </h1>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md hover:shadow-xl transform hover:scale-[1.02]">
-          <h2 className="text-xl font-semibold mb-4">Ações por Dia</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={dataAtividades} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <XAxis dataKey="dia" stroke="#8884d8" />
-              <YAxis stroke="#8884d8" />
-              <Tooltip />
-              <Line type="monotone" dataKey="acoes" stroke="#4ade80" strokeWidth={3} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+            {/* Texto mais enxuto */}
+            <div className="space-y-2 text-gray-700 dark:text-gray-300 text-base leading-relaxed">
+              <p>Sejam bem-vindos ao painel da Tropa do Careca.</p>
+              <p>
+                Aqui você pode <b>calcular seu farm</b>, <b>ver suas ações</b> e{" "}
+                <b>registrar o seu baú</b>. Tudo vai para <b>sua pasta</b> criada no Discord.
+              </p>
+              <p>
+                Sem acesso? <b>Solicite aos líderes</b> no nosso servidor:
+              </p>
+            </div>
+
+            {/* Botão do Discord — compacto */}
+            <a
+              href="https://discord.gg/XJaq7v5AES"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold
+                         bg-[#111] text-white border border-lime-400/60
+                         shadow-[0_0_16px_rgba(163,255,0,0.28)]
+                         hover:shadow-[0_0_26px_rgba(163,255,0,0.48)]
+                         transition"
+              aria-label="Entrar no Discord"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Entrar no Discord
+            </a>
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
+              Ou abra: <span className="underline">https://discord.gg/XJaq7v5AES</span>
+            </p>
+
+            {/* Login — visível sem rolagem */}
+            <div className="mt-1">
+              <Link
+                href="/login"
+                className="px-5 py-2 rounded-lg bg-black text-white hover:opacity-90 transition shadow-md text-sm md:text-base"
+              >
+                Login
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
